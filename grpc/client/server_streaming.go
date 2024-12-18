@@ -7,9 +7,8 @@ import (
 	"log"
 )
 
-func callSayHelloServerStream(client pb.GreetServiceClient, names *pb.NamesList) {
-	log.Println("Streaming started")
-	res, err := client.SayHelloServerStreaming(context.Background(), names)
+func callSayHelloServerSideStream(client pb.GreetServiceClient, names *pb.NamesList) {
+	res, err := client.SayHelloServerSideStreaming(context.Background(), names)
 	if err != nil {
 		log.Fatalf("Could not send names: %v", err)
 	}

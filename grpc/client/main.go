@@ -14,15 +14,15 @@ const (
 
 func main() {
 	conn, err := grpc.NewClient("localhost"+port, grpc.WithTransportCredentials(insecure.NewCredentials()))
-
 	if err != nil {
 		log.Fatalf("Did not connect %v", err)
 	}
 	defer conn.Close()
 	client := pb.NewGreetServiceClient(conn)
-	callSayHello(client)
+	CallSayHello(client)
 	names := &pb.NamesList{
-		Names: []string{"Akhil", "Aditya", "Aman"},
+		Names: []string{"Abhi", "Ajay", "Aditya"},
 	}
-	callSayHelloServerStream(client, names)
+	callSayHelloServerSideStream(client, names)
+	callSayHelloClientSideStream(client, names)
 }
