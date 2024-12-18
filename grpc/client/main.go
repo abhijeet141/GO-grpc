@@ -13,7 +13,7 @@ const (
 )
 
 func main() {
-	conn, err := grpc.NewClient("localhost"+port, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("localhost"+port, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(UnaryClientInterceptor))
 	if err != nil {
 		log.Fatalf("Did not connect %v", err)
 	}
