@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GreetService_SayHello_FullMethodName                    = "/GreetService/SayHello"
-	GreetService_SayHelloServerSideStreaming_FullMethodName = "/GreetService/SayHelloServerSideStreaming"
-	GreetService_SayHelloClientSideStreaming_FullMethodName = "/GreetService/SayHelloClientSideStreaming"
+	GreetService_SayHello_FullMethodName                       = "/GreetService/SayHello"
+	GreetService_SayHelloServerSideStreaming_FullMethodName    = "/GreetService/SayHelloServerSideStreaming"
+	GreetService_SayHelloClientSideStreaming_FullMethodName    = "/GreetService/SayHelloClientSideStreaming"
+	GreetService_SayHelloBiDirectionalStreaming_FullMethodName = "/GreetService/SayHelloBiDirectionalStreaming"
 )
 
 // GreetServiceClient is the client API for GreetService service.
@@ -31,6 +32,7 @@ type GreetServiceClient interface {
 	SayHello(ctx context.Context, in *NoParam, opts ...grpc.CallOption) (*HelloResponse, error)
 	SayHelloServerSideStreaming(ctx context.Context, in *NamesList, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HelloResponse], error)
 	SayHelloClientSideStreaming(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[HelloRequest, MessageList], error)
+	SayHelloBiDirectionalStreaming(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[HelloRequest, HelloResponse], error)
 }
 
 type greetServiceClient struct {
@@ -83,6 +85,19 @@ func (c *greetServiceClient) SayHelloClientSideStreaming(ctx context.Context, op
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type GreetService_SayHelloClientSideStreamingClient = grpc.ClientStreamingClient[HelloRequest, MessageList]
 
+func (c *greetServiceClient) SayHelloBiDirectionalStreaming(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[HelloRequest, HelloResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &GreetService_ServiceDesc.Streams[2], GreetService_SayHelloBiDirectionalStreaming_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[HelloRequest, HelloResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GreetService_SayHelloBiDirectionalStreamingClient = grpc.BidiStreamingClient[HelloRequest, HelloResponse]
+
 // GreetServiceServer is the server API for GreetService service.
 // All implementations must embed UnimplementedGreetServiceServer
 // for forward compatibility.
@@ -90,6 +105,7 @@ type GreetServiceServer interface {
 	SayHello(context.Context, *NoParam) (*HelloResponse, error)
 	SayHelloServerSideStreaming(*NamesList, grpc.ServerStreamingServer[HelloResponse]) error
 	SayHelloClientSideStreaming(grpc.ClientStreamingServer[HelloRequest, MessageList]) error
+	SayHelloBiDirectionalStreaming(grpc.BidiStreamingServer[HelloRequest, HelloResponse]) error
 	mustEmbedUnimplementedGreetServiceServer()
 }
 
@@ -108,6 +124,9 @@ func (UnimplementedGreetServiceServer) SayHelloServerSideStreaming(*NamesList, g
 }
 func (UnimplementedGreetServiceServer) SayHelloClientSideStreaming(grpc.ClientStreamingServer[HelloRequest, MessageList]) error {
 	return status.Errorf(codes.Unimplemented, "method SayHelloClientSideStreaming not implemented")
+}
+func (UnimplementedGreetServiceServer) SayHelloBiDirectionalStreaming(grpc.BidiStreamingServer[HelloRequest, HelloResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method SayHelloBiDirectionalStreaming not implemented")
 }
 func (UnimplementedGreetServiceServer) mustEmbedUnimplementedGreetServiceServer() {}
 func (UnimplementedGreetServiceServer) testEmbeddedByValue()                      {}
@@ -166,6 +185,13 @@ func _GreetService_SayHelloClientSideStreaming_Handler(srv interface{}, stream g
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type GreetService_SayHelloClientSideStreamingServer = grpc.ClientStreamingServer[HelloRequest, MessageList]
 
+func _GreetService_SayHelloBiDirectionalStreaming_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(GreetServiceServer).SayHelloBiDirectionalStreaming(&grpc.GenericServerStream[HelloRequest, HelloResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GreetService_SayHelloBiDirectionalStreamingServer = grpc.BidiStreamingServer[HelloRequest, HelloResponse]
+
 // GreetService_ServiceDesc is the grpc.ServiceDesc for GreetService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -187,6 +213,12 @@ var GreetService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "SayHelloClientSideStreaming",
 			Handler:       _GreetService_SayHelloClientSideStreaming_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "SayHelloBiDirectionalStreaming",
+			Handler:       _GreetService_SayHelloBiDirectionalStreaming_Handler,
+			ServerStreams: true,
 			ClientStreams: true,
 		},
 	},

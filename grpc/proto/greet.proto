@@ -6,6 +6,7 @@ service GreetService{
 rpc SayHello (NoParam) returns (HelloResponse);
 rpc SayHelloServerSideStreaming (NamesList) returns (stream HelloResponse);
 rpc SayHelloClientSideStreaming (stream HelloRequest) returns (MessageList);
+rpc SayHelloBiDirectionalStreaming (stream HelloRequest) returns (stream HelloResponse);
 }
 
 message NoParam{};
